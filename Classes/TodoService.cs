@@ -103,5 +103,26 @@ namespace TodoWebAPI.Classes
 
             return JsonConvert.SerializeObject(response);
         }
+
+        public static string DeleteAllTodos(List<Todo> todos)
+        {
+            var response = new Response();
+
+            var todo = new Todo();
+
+            if (todos.Count > 0)
+            {
+                todos.Clear();
+
+                response.StatusCode = 200;
+
+                return JsonConvert.SerializeObject(response);
+            }
+
+            response.StatusCode = 100;
+            response.ErrorMessage = "No data found.";
+
+            return JsonConvert.SerializeObject(response);
+        }
     }
 }

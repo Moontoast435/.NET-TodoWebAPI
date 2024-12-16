@@ -65,16 +65,20 @@ namespace TodoWebAPI.Controllers
             try {
                 var res = TodoService.createTodo(description);
 
-                var createdTodo = JsonConvert.DeserializeObject<CreateTodoResponse>(res).Todo;
+                var createdTodo = JsonConvert.DeserializeObject<CreateTodoResponse>(res);
 
                 var nR = new Todo()
                 {
-                    description = createdTodo.description != null ? createdTodo.description : "No description entered."
+                    description = createdTodo.Todo.description != null ? createdTodo.Todo.description : "No description entered."
                 };
 
                 _context.Todos.Add(nR); 
 
                 _context.SaveChanges();
+
+                createdTodo.Todo.id = nR.id;
+
+                res = JsonConvert.SerializeObject(createdTodo);
 
                 return res;
 
@@ -148,7 +152,35 @@ namespace TodoWebAPI.Controllers
                 throw;
             }
 
-}
+        }
+
+        [HttpDelete]
+        [Route("DeleteAllTodos")]
+        public string DeleteAllTodos()
+        {
+            try
+            {
+                var res = JsonConvert.DeserializeObject<Response>(TodoService.DeleteAllTodos(_context.Todos.ToList()));
+
+                if (res.StatusCode == 200)
+                {
+                    var toRemove = _context.Todos.ToList();
+                    _context.Todos.RemoveRange(toRemove);
+
+                    _context.SaveChanges();
+
+                    return JsonConvert.SerializeObject(res);
+                }
+
+                return JsonConvert.SerializeObject(res);
+            }
+            catch (Exception ex)
+            {
+                var error = "Fail to delete all todos: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
+            }
+        }
 
     }
 }
