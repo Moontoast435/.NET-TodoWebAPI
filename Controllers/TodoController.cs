@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Text.Json.Serialization;
+using TodoWebAPI.Classes;
 using TodoWebAPI.Models;
 
 namespace TodoWebAPI.Controllers
@@ -12,179 +14,107 @@ namespace TodoWebAPI.Controllers
     [ApiController]
     public class TodoController : Controller
     {
-        public readonly IConfiguration _configuration;
-        public TodoController(IConfiguration configuration)
+        private readonly LHQ_SeanContext _context;
+
+        public TodoController(LHQ_SeanContext context)
         {
-            _configuration = configuration;  
+            _context = context;
         }
 
         [HttpGet]
         [Route("GetAllTodos")]
         public string GetTodos()
         {
-            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("TodoAppCon"));
-            SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM todos", con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-
-            Response response = new Response();
-
-            List<Todo> todoList = new List<Todo>();
-
-            if (dt.Rows.Count > 0 )
+            try
             {
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    Todo todo = new Todo();
+                var todos = _context.Todos.ToList();
 
-                    todo.id = Convert.ToInt32(dt.Rows[i]["id"]);
-                    todo.description = dt.Rows[i]["description"].ToString() ?? "";
-
-                    todoList.Add(todo);
-                }
+                return TodoService.retrieveTodos(todos);
             }
-
-            if (todoList.Count > 0)
+            catch (Exception ex)
             {
-                return JsonConvert.SerializeObject(todoList);
-            }
-            else
-            {
-                response.StatusCode = 100;
-                response.ErrorMessage = "No Data Found.";
-
-                return JsonConvert.SerializeObject(response);
-            }
+                var error = "Fail to get todos: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
+            }   
         }
+
+
         [HttpGet]
         [Route("GetTodo")]
         public string GetTodo(int id)
         {
-            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("TodoAppCon"));
-            SqlDataAdapter da = new SqlDataAdapter($"SELECT * FROM todos WHERE id = {id}", con);
-
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-
-            Response response = new Response();
-
-            Todo? todo = null;
-
-            if (dt.Rows.Count > 0)
+            try
             {
-                todo = new Todo();
-                todo.id = Convert.ToInt32(dt.Rows[0]["id"]);
-                todo.description = dt.Rows[0]["description"].ToString() ?? "";
-            }
+                var todos = _context.Todos.ToList();
 
-            if (todo != null)
+                return TodoService.retrieveTodo(id, todos);
+            }
+            catch (Exception ex)
             {
-                return JsonConvert.SerializeObject(todo);
+                var error = "Fail to get todo: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
             }
-            else
-            {
-                response.StatusCode = 100;
-                response.ErrorMessage = "No Data Found.";
-
-                return JsonConvert.SerializeObject(response);
-            }
-
         }
 
         [HttpPost]
         [Route("CreateTodo")]
         public string CreateTodo(string description)
         {
-            try
-            {
-                SqlConnection con = new SqlConnection(_configuration.GetConnectionString("TodoAppCon"));
-                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM todos WHERE 0 = 1 ", con);
+            try {
+                var res = TodoService.createTodo(description);
 
-                var dt = new DataTable();
-                da.Fill(dt);
+                var createdTodo = JsonConvert.DeserializeObject<CreateTodoResponse>(res).Todo;
 
-                var newRow = dt.NewRow();
+                var nR = new Todo()
+                {
+                    description = createdTodo.description != null ? createdTodo.description : "No description entered."
+                };
 
-                newRow["description"] = description;
+                _context.Todos.Add(nR); 
 
-                dt.Rows.Add(newRow);
+                _context.SaveChanges();
 
-                new SqlCommandBuilder(da);
-                da.Update(dt);
-             
-                //Todo? todo = null;
+                return res;
 
-                //todo = da.RowUpdated["id"];             
-                //todo.description = newRow["description"].ToString() ?? "";
-
-                return JsonConvert.SerializeObject(newRow);
             }
             catch (Exception ex)
             {
-                Response response = new Response();
-
-                response.StatusCode = 100;
-                response.ErrorMessage = ex.Message;
-
-                return JsonConvert.SerializeObject(response);
+                var error = "Fail to create todo: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
             }
-   
-
         }
 
         [HttpPut]
         [Route("EditTodo")]
         public string UpdateTodo(int id, string description)
         {
-            Response response = new Response();
-            Todo? todo = null;
-
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("TodoAppCon")))
+            try
             {
-                // Use parameterized query for the update
-                string query = "UPDATE todos SET description = @description WHERE id = @id";
+                var todos = _context.Todos.ToList();
 
-                using (SqlCommand cmd = new SqlCommand(query, con))
+                var res = TodoService.editTodo(id, description, todos);
+
+                var editedTodo = JsonConvert.DeserializeObject<CreateTodoResponse>(res);
+
+                if (editedTodo.Response.StatusCode == 200)
                 {
-                    // Add parameters to prevent SQL injection
-                    cmd.Parameters.AddWithValue("@description", description);
-                    cmd.Parameters.AddWithValue("@id", id);
+                    _context.Todos.Where(todo => todo.id == id).First().description = description;
 
-                    try
-                    {
-                        con.Open();
+                    _context.SaveChanges();
 
-                        // Execute the query
-                        int rowsAffected = cmd.ExecuteNonQuery();
-
-                        if (rowsAffected > 0)
-                        {
-                            // If the update is successful, retrieve the updated Todo
-                            todo = new Todo();
-                            todo.id = id;
-                            todo.description = description;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        response.StatusCode = 500;
-                        response.ErrorMessage = "An error occurred: " + ex.Message;
-                        return JsonConvert.SerializeObject(response);
-                    }
+                    return res;
                 }
+                
+                return res;
             }
-
-            if (todo != null)
+            catch (Exception ex)
             {
-                // Return the updated todo as JSON
-                return JsonConvert.SerializeObject(todo);
-            }
-            else
-            {
-                // Return a response indicating no data was found or updated
-                response.StatusCode = 100;
-                response.ErrorMessage = "No Data Found.";
-                return JsonConvert.SerializeObject(response);
+                var error = "Fail to edit todo: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
             }
         }
 
@@ -192,37 +122,33 @@ namespace TodoWebAPI.Controllers
         [Route("DeleteTodo")]
         public string DeleteTodo(int id)
         {
-            Response response = new Response();
-
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("TodoAppCon")))
+            try
             {
-                // Use parameterized query for the update
-                string query = "DELETE FROM todos WHERE id = @id";
+                var todos = _context.Todos.ToList();
 
-                using (SqlCommand cmd = new SqlCommand(query, con))
-                {
-                    // Add parameters to prevent SQL injection
-                    cmd.Parameters.AddWithValue("@id", id);
+                var res = TodoService.deleteTodo(id, todos);
 
-                    try
-                    {
-                        con.Open();
+                var deletedTodo = JsonConvert.DeserializeObject<CreateTodoResponse>(res);
 
-                        response.ErrorMessage = "Todo deleted";
-                        response.StatusCode = 200;
+            if (deletedTodo.Response.StatusCode == 200)
+            {
+                _context.Todos.Remove(_context.Todos.Where(todo => todo.id == id).First());
 
-                        return JsonConvert.SerializeObject(response);
-                    }
-                    catch (Exception ex)
-                    {
-                        response.StatusCode = 500;
-                        response.ErrorMessage = "An error occurred: " + ex.Message;
-                        return JsonConvert.SerializeObject(response);
-                    }
-                }
+                _context.SaveChanges();
+
+                return res;
             }
-            
-        }
+
+            return res;
+            }
+            catch (Exception ex)
+            {
+                var error = "Fail to delete todo: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
+            }
+
+}
 
     }
 }

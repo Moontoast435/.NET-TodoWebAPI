@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using TodoWebAPI.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -15,6 +18,9 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
+
+builder.Services.AddDbContext<LHQ_SeanContext>(options =>
+    options.UseSqlServer("Data Source=SEANLAPTOP;Initial Catalog=LHQ_Sean;Integrated Security=True"));
 
 var app = builder.Build();
 
