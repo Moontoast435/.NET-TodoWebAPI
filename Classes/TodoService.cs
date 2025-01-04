@@ -7,7 +7,7 @@ namespace TodoWebAPI.Classes
     {
         public static string retrieveTodos(List<Todo> todos)
         {
-            Response response = new Response();
+            Response response = new();
 
             if (todos.Any()) { 
                 response.StatusCode = 200;
@@ -117,6 +117,30 @@ namespace TodoWebAPI.Classes
                 response.StatusCode = 200;
 
                 return JsonConvert.SerializeObject(response);
+            }
+
+            response.StatusCode = 100;
+            response.ErrorMessage = "No data found.";
+
+            return JsonConvert.SerializeObject(response);
+        }
+
+        public static string ToggleComplete(int id, List<Todo> todos)
+        {
+            Response response = new();
+
+            if (todos.Where(todo => todo.id == id).Any())
+            {
+                var todo = todos.Where(todo => todo.id == id).FirstOrDefault();
+
+                todo.complete = !todo.complete;
+
+                response.StatusCode = 200;
+
+                var returnObj = new { response, todo };
+
+                return JsonConvert.SerializeObject(returnObj);
+
             }
 
             response.StatusCode = 100;

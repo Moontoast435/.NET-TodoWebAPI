@@ -2,7 +2,7 @@
 {
     public class CreateTodoResponse
     {
-        public Todo Todo { get; set; }
-        public Response Response { get; set; }
+        public Todo? Todo { get; set; }
+        public Response? Response { get; set; }
     }
 }

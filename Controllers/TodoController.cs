@@ -182,5 +182,34 @@ namespace TodoWebAPI.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("ToggleComplete")]
+        public string ToggleComplete(int id)
+        {
+            try
+            {
+                var res = JsonConvert.DeserializeObject<Response>(TodoService.ToggleComplete(id, _context.Todos.ToList()));
+
+                if (res.StatusCode == 200)
+                {
+                    var toToggle = _context.Todos.Where(todo => todo.id == id).FirstOrDefault();
+                    _context.Todos.Where(todo => todo.id == id).First().complete = !toToggle.complete;
+
+                    _context.SaveChanges();
+
+                    return JsonConvert.SerializeObject(res);
+                }
+
+                return JsonConvert.SerializeObject(res);
+            }
+            catch (Exception ex)
+            {
+                var error = "Fail to toggle complete: " + ex.Message;
+                Console.WriteLine(error);
+                throw;
+            }
+
+        }
+
     }
 }

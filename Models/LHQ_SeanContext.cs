@@ -36,6 +36,14 @@ namespace TodoWebAPI.Models
                     .HasMaxLength(200)
                     .IsUnicode(false)
                     .HasColumnName("description");
+
+                entity.Property(e => e.complete)
+                    .HasColumnName("complete")
+                    .HasColumnType("bit");
+
+                entity.Property(e => e.userId)
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("userId");
             });
 
             OnModelCreatingPartial(modelBuilder);
