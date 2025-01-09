@@ -188,13 +188,10 @@ namespace TodoWebAPI.Controllers
         {
             try
             {
-                var res = JsonConvert.DeserializeObject<Response>(TodoService.ToggleComplete(id, _context.Todos.ToList()));
+                var res = JsonConvert.DeserializeObject<CreateTodoResponse>(TodoService.ToggleComplete(id, _context.Todos.ToList()));
 
-                if (res.StatusCode == 200)
+                if (res.Response.StatusCode == 200)
                 {
-                    var toToggle = _context.Todos.Where(todo => todo.id == id).FirstOrDefault();
-                    _context.Todos.Where(todo => todo.id == id).First().complete = !toToggle.complete;
-
                     _context.SaveChanges();
 
                     return JsonConvert.SerializeObject(res);
