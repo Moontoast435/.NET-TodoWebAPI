@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TodoWebAPI
+namespace TodoWebAPI.Models
 {
     public partial class User
     {
