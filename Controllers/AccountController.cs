@@ -18,13 +18,13 @@ namespace TodoWebAPI.Controllers
 
         [HttpPost]
         [Route("CreateAccount")]
-        public string CreateAccount(string userIdx, string userName, string passwordHash)
+        public string CreateAccount(string username, string password)
         {
             try
             {
                 CreateAccountResponse responseObj = new();
 
-                var doesAccountExist = AccountService.CheckIfAccountExists(_context.Users.ToList(), userName);
+                var doesAccountExist = AccountService.CheckIfAccountExists(_context.Users.ToList(), username);
 
                 if (doesAccountExist)
                 {
@@ -35,9 +35,9 @@ namespace TodoWebAPI.Controllers
 
                 User newUser = new();
 
-                newUser.GUserIdx = Guid.Parse(userIdx);
-                newUser.SUsername = userName;
-                newUser.SPasswordHash = passwordHash;
+                newUser.GUserIdx = new Guid();
+                newUser.SUsername = username;
+                newUser.SPasswordHash = AccountService.HashPassword(password);
 
                 _context.Users.Add(newUser);
 
