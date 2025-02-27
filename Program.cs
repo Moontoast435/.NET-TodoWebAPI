@@ -20,14 +20,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<LHQ_SeanContext>(options =>
-    options.UseSqlServer("Data Source=SEANLAPTOP;Initial Catalog=LHQ_Sean;Integrated Security=True"));
+    options.UseSqlServer("Data Source=localhost;Initial Catalog=LHQ_Sean;Integrated Security=True"));
 
 var app = builder.Build();
 
 // Enable CORS globally
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:5173"));
-
-app.UsePathBase("/api/GetTodos");
 
 app.UseHttpsRedirection();
 

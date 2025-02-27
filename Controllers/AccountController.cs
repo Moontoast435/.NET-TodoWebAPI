@@ -45,6 +45,7 @@ namespace TodoWebAPI.Controllers
 
                 responseObj.StatusCode = 200;
                 responseObj.Message = "Account created.";
+                responseObj.Account = newUser;
 
                 return JsonConvert.SerializeObject(responseObj);
             }
