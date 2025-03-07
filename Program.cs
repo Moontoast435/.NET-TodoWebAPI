@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using TodoWebAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var Configuration = builder.Configuration; 
 
 // Add services to the container.
 
@@ -20,7 +22,17 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<LHQ_SeanContext>(options =>
-    options.UseSqlServer("Data Source=localhost;Initial Catalog=LHQ_Sean;Integrated Security=True"));
+    options.UseSqlServer("Data Source=SEANLAPTOP;Initial Catalog=LHQ_Sean;Integrated Security=True"));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.Authority = Configuration["Auth0:Authority"];
+    options.Audience = Configuration["Auth0:Audience"];
+});
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Data;
@@ -21,7 +22,7 @@ namespace TodoWebAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet, Authorize]
         [Route("GetAllTodos")]
         public string GetTodos()
         {
@@ -40,7 +41,7 @@ namespace TodoWebAPI.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet, Authorize]
         [Route("GetTodo")]
         public string GetTodo(int id)
         {
@@ -58,7 +59,7 @@ namespace TodoWebAPI.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost, Authorize]
         [Route("CreateTodo")]
         public string CreateTodo(string description)
         {
@@ -91,7 +92,7 @@ namespace TodoWebAPI.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut, Authorize]
         [Route("EditTodo")]
         public string UpdateTodo(int id, string description)
         {
@@ -122,7 +123,7 @@ namespace TodoWebAPI.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete, Authorize]
         [Route("DeleteTodo")]
         public string DeleteTodo(int id)
         {
@@ -154,7 +155,7 @@ namespace TodoWebAPI.Controllers
 
         }
 
-        [HttpDelete]
+        [HttpDelete, Authorize]
         [Route("DeleteAllTodos")]
         public string DeleteAllTodos()
         {
@@ -182,7 +183,7 @@ namespace TodoWebAPI.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut, Authorize]
         [Route("ToggleComplete")]
         public string ToggleComplete(int id)
         {
