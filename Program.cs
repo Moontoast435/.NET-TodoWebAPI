@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<LHQ_SeanContext>(options =>
-    options.UseSqlServer("Data Source=SEANLAPTOP;Initial Catalog=LHQ_Sean;Integrated Security=True"));
+    options.UseSqlServer("Data Source=localhost;Initial Catalog=LHQ_Sean;Integrated Security=True"));
 
 builder.Services.AddAuthentication(options =>
 {
